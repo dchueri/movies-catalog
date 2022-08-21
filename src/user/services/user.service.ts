@@ -37,13 +37,20 @@ export class UserService {
     throw new UserNotFoundException(updateUserDTO.userName);
   }
 
+  async deleteUser(userId: number) {
+    return await this.usersRepository.delete({ id: userId });
+  }
+
   async hashPassword(password: string): Promise<string> {
     const saltOrRounds = 10;
     return await bcrypt.hash(password, saltOrRounds);
   }
 
   async findOne(id: number): Promise<UserEntity> {
-    return await this.usersRepository.findOne({ where: { id: id } });
+    return await this.usersRepository.findOne({
+      where: { id: id },
+      select: ['id', 'userName', 'createdAt', 'updatedAt'],
+    });
   }
 
   async findByUserName(userName: string): Promise<UserEntity> {
