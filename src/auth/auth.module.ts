@@ -1,6 +1,9 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserEntity } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/services/user.service';
 import { UserModule } from 'src/user/user.module';
 import { AuthController } from './controllers/auth.controller';
 import { LoginValidationMiddleware } from './middlewares/login-validation.middleware';
@@ -16,8 +19,9 @@ import { LocalStrategy } from './strategies/local.strategy';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '30d' },
     }),
+    TypeOrmModule.forFeature([UserEntity]),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, UserService, LocalStrategy, JwtStrategy],
   exports: [AuthService],
   controllers: [AuthController],
 })
