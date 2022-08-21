@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { CreateUserDTO } from '../dto/create-user.dto';
 import { UpdateUserDTO } from '../dto/update-user.dto';
 import { UserEntity } from '../entities/user.entity';
+import UserAlreadyExistsException from '../exceptions/user-already-exists';
 import UserNotFoundException from '../exceptions/user-not-found.exception';
 
 @Injectable()
@@ -15,10 +16,14 @@ export class UserService {
   ) {}
 
   async createUser(createUserDTO: CreateUserDTO): Promise<UserEntity> {
-    const user = this.usersRepository.create(createUserDTO);
-    user.password = await this.hashPassword(createUserDTO.password);
+    try {
+      const user = this.usersRepository.create(createUserDTO);
+      user.password = await this.hashPassword(createUserDTO.password);
 
-    return await this.usersRepository.save(user);
+      return await this.usersRepository.save(user);
+    } catch {
+      throw new UserAlreadyExistsException(createUserDTO.userName);
+    }
   }
 
   async updateUser(updateUserDTO: UpdateUserDTO): Promise<UserEntity> {
@@ -38,7 +43,7 @@ export class UserService {
   }
 
   async findOne(id: number): Promise<UserEntity> {
-    return await this.usersRepository.findOneOrFail({ where: { id: id } });
+    return await this.usersRepository.findOne({ where: { id: id } });
   }
 
   async findByUserName(userName: string): Promise<UserEntity> {

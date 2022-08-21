@@ -1,6 +1,5 @@
-import { Body, Controller, Get, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { CreateUserDTO } from '../dto/create-user.dto';
 import { UpdateUserDTO } from '../dto/update-user.dto';
 import { UserEntity } from '../entities/user.entity';
 import UserInternalServerErrorException from '../exceptions/user-internal-server-error.exception';
@@ -14,15 +13,6 @@ export class UserController {
   @Get()
   async getUsers(): Promise<UserEntity[]> {
     return await this.userService.getUsers();
-  }
-
-  @Post('signup')
-  async create(@Body() userToCreate: CreateUserDTO): Promise<UserEntity> {
-    try {
-      return await this.userService.createUser(userToCreate);
-    } catch {
-      throw new UserInternalServerErrorException(userToCreate.userName);
-    }
   }
 
   @Put()
