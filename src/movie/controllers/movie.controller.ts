@@ -9,6 +9,7 @@ import {
   UseGuards
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RedisService } from 'src/redis/services/redis.service';
 import { CreateMovieDTO } from '../dto/create-movie.dto';
 import { UpdateMovieDTO } from '../dto/update-movie.dto';
 import { MovieEntity } from '../entities/movie.entity';
@@ -17,11 +18,14 @@ import { MovieService } from '../services/movie.service';
 @Controller('movie')
 @UseGuards(JwtAuthGuard)
 export class MovieController {
-  constructor(private readonly movieService: MovieService) {}
+  constructor(
+    private readonly movieService: MovieService,
+    private readonly redisService: RedisService,
+  ) {}
 
   @Get('all')
   async getMovies(): Promise<MovieEntity[]> {
-    return await this.movieService.getMovies();
+    return await this.movieService.findAllMovies();
   }
 
   @Post('add')
