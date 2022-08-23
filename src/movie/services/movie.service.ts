@@ -5,6 +5,7 @@ import { RedisService } from '../../redis/services/redis.service';
 import { CreateMovieDTO } from '../dto/create-movie.dto';
 import { UpdateMovieDTO } from '../dto/update-movie.dto';
 import { MovieEntity } from '../entities/movie.entity';
+import InvalidMovieErrorException from '../exceptions/invalid-data-of-movie.exception';
 import MovieNotFoundException from '../exceptions/movie-not-found.exception';
 
 @Injectable()
@@ -26,9 +27,13 @@ export class MovieService {
   }
 
   async addMovie(createMovieDTO: CreateMovieDTO): Promise<MovieEntity> {
-    const movie = this.movieRepository.create(createMovieDTO);
-    await this.redisService.del('movies');
-    return await this.movieRepository.save(movie);
+    try {
+      const movie = await this.movieRepository.create(createMovieDTO);
+      await this.redisService.del('movies');
+      return await this.movieRepository.save(movie);
+    } catch (e) {
+      throw new InvalidMovieErrorException();
+    }
   }
 
   async findOneMovie(movieId: number): Promise<MovieEntity> {
@@ -40,13 +45,22 @@ export class MovieService {
       });
       return movieFound;
     }
-    return await this.movieRepository.findOne({ where: { id: movieId } });
+    const movieFound = await this.movieRepository.findOne({
+      where: { id: movieId },
+    });
+    if (movieFound) {
+      return movieFound;
+    }
+    throw new MovieNotFoundException(movieId);
   }
 
   async updateMovie(
     movieId: number,
     updateMovieDTO: UpdateMovieDTO,
   ): Promise<MovieEntity> {
+    this.movieRepository.createQueryBuilder().update({
+      ...updateMovieDTO,
+    });
     await this.movieRepository.update(movieId, updateMovieDTO);
     const updatedMovie = await this.findOneMovie(movieId);
     if (updatedMovie) {
