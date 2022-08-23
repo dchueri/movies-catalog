@@ -3,7 +3,7 @@ version: '3.9'
 services:
 
   movies-database:
-    container_name: movies-db
+    container_name: movies-database
     image: postgres:latest
     networks:
       - movies-bridge
@@ -33,7 +33,7 @@ services:
       - movies-cache
 
   movies-cache:
-    container_name: movies-redis
+    container_name: movies-cache
     image: "redis:alpine"
     restart: always
     ports:
