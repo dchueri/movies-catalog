@@ -3,15 +3,16 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Put,
+  Response,
   UseGuards
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { UpdateUserDTO } from '../dto/update-user.dto';
 import { UserEntity } from '../entities/user.entity';
-import UserInternalServerErrorException from '../exceptions/user-internal-server-error.exception';
-import UserNotFoundException from '../exceptions/user-not-found.exception';
 import { UserService } from '../services/user.service';
 
 @Controller('user')
@@ -20,30 +21,48 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('all')
+  @HttpCode(HttpStatus.OK)
   async getUsers(): Promise<UserEntity[]> {
     return await this.userService.getUsers();
   }
 
   @Get(':id')
-  async getOneUser(@Param('id') userId: number): Promise<UserEntity> {
-    return await this.userService.findOne(userId);
-  }
-
-  @Put()
-  async updateUser(@Body() userToUpdate: UpdateUserDTO): Promise<UserEntity> {
+  async getOneUser(
+    @Param('id') userId: number,
+    @Response() res,
+  ): Promise<UserEntity> {
     try {
-      return await this.userService.updateUser(userToUpdate);
-    } catch {
-      throw new UserInternalServerErrorException(userToUpdate.userName);
+      const userFound = await this.userService.findOne(userId);
+      return res.status(HttpStatus.OK).json(userFound);
+    } catch (e) {
+      res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
     }
   }
 
-  @Delete(':id')
-  async deleteUser(@Param('id') userId: number) {
+  @Put('update/:id')
+  async updateUser(
+    @Param('id') userId: number,
+    @Body() userToUpdate: UpdateUserDTO,
+    @Response() res,
+  ): Promise<UserEntity> {
     try {
-      return await this.userService.deleteUser(userId);
-    } catch {
-      throw new UserNotFoundException('');
+      const updatedUser = await this.userService.updateUser(
+        userId,
+        userToUpdate,
+      );
+      return res.status(HttpStatus.OK).json(updatedUser);
+    } catch (e) {
+      res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
+    }
+  }
+
+  @Delete('delete/:id')
+  async deleteUser(@Param('id') userId: number, @Response() res) {
+    try {
+      await this.userService.deleteUser(userId);
+      return res.status(HttpStatus.NO_CONTENT).json();
+    } catch (e) {
+      res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
     }
   }
 }

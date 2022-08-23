@@ -6,7 +6,6 @@ import { CreateUserDTO } from '../dto/create-user.dto';
 import { UpdateUserDTO } from '../dto/update-user.dto';
 import { UserEntity } from '../entities/user.entity';
 import UserAlreadyExistsException from '../exceptions/user-already-exists';
-import UserNotFoundException from '../exceptions/user-not-found.exception';
 
 @Injectable()
 export class UserService {
@@ -30,19 +29,34 @@ export class UserService {
     throw new BadRequestException('You must provide userName and password.');
   }
 
-  async updateUser(updateUserDTO: UpdateUserDTO): Promise<UserEntity> {
-    await this.usersRepository.update(updateUserDTO.id, updateUserDTO);
+  async updateUser(
+    userId: number,
+    updateUserDTO: UpdateUserDTO,
+  ): Promise<UserEntity> {
+    if (updateUserDTO.password) {
+      updateUserDTO.password = await this.hashPassword(updateUserDTO.password);
+    }
+    try {
+      await this.usersRepository.update(userId, updateUserDTO);
+    } catch (e) {
+      console.log(e.message);
+      throw new UserAlreadyExistsException(updateUserDTO.userName);
+    }
     const updatedUser = await this.usersRepository.findOne({
-      where: { id: updateUserDTO.id },
+      where: { id: userId },
     });
     if (updatedUser) {
       return updatedUser;
     }
-    throw new UserNotFoundException(updateUserDTO.userName);
+    throw new Error(`User with id ${userId} not found`);
   }
 
   async deleteUser(userId: number) {
-    return await this.usersRepository.delete({ id: userId });
+    const returnOfDelete = await this.usersRepository.delete({ id: userId });
+    if (returnOfDelete.affected) {
+      return;
+    }
+    throw new Error(`User with id ${userId} not found`);
   }
 
   async hashPassword(password: string): Promise<string> {
@@ -50,11 +64,15 @@ export class UserService {
     return await bcrypt.hash(password, saltOrRounds);
   }
 
-  async findOne(id: number): Promise<UserEntity> {
-    return await this.usersRepository.findOne({
-      where: { id: id },
+  async findOne(userId: number): Promise<UserEntity> {
+    const userFound = await this.usersRepository.findOne({
+      where: { id: userId },
       select: ['id', 'userName', 'createdAt', 'updatedAt'],
     });
+    if (userFound) {
+      return userFound;
+    }
+    throw new Error(`User with id ${userId} not found`);
   }
 
   async findByUserName(userName: string): Promise<UserEntity> {

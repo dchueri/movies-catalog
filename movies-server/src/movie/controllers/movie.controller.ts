@@ -3,9 +3,12 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Post,
   Put,
+  Response,
   UseGuards
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -24,30 +27,61 @@ export class MovieController {
   ) {}
 
   @Get('all')
+  @HttpCode(HttpStatus.OK)
   async getMovies(): Promise<MovieEntity[]> {
     return await this.movieService.findAllMovies();
   }
 
   @Post('add')
-  async addMovie(@Body() createMovieDTO: CreateMovieDTO): Promise<MovieEntity> {
-    return await this.movieService.addMovie(createMovieDTO);
+  async addMovie(
+    @Body() createMovieDTO: CreateMovieDTO,
+    @Response() res,
+  ): Promise<MovieEntity> {
+    try {
+      const addedMovie = await this.movieService.addMovie(createMovieDTO);
+      return res.status(HttpStatus.CREATED).json(addedMovie);
+    } catch (e) {
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
+    }
   }
 
   @Get(':id')
-  async getOneMovie(@Param('id') movieId: number): Promise<MovieEntity> {
-    return await this.movieService.findOneMovie(movieId);
+  async getOneMovie(
+    @Param('id') movieId: number,
+    @Response() res,
+  ): Promise<MovieEntity> {
+    try {
+      const movieFound = await this.movieService.findOneMovie(movieId);
+      return res.status(HttpStatus.OK).json(movieFound);
+    } catch (e) {
+      res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
+    }
   }
 
   @Put('update/:id')
   async updateMovie(
     @Param('id') movieId: number,
     @Body() updateMovie: UpdateMovieDTO,
+    @Response() res,
   ): Promise<UpdateMovieDTO> {
-    return await this.movieService.updateMovie(movieId, updateMovie);
+    try {
+      const updatedMovie = await this.movieService.updateMovie(
+        movieId,
+        updateMovie,
+      );
+      return res.status(HttpStatus.OK).json(updatedMovie);
+    } catch (e) {
+      res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
+    }
   }
 
   @Delete('delete/:id')
-  async deleteMovie(@Param('id') movieId: number) {
-    return await this.movieService.deleteMovie(movieId);
+  async deleteMovie(@Param('id') movieId: number, @Response() res) {
+    try {
+      await this.movieService.deleteMovie(movieId);
+      return res.status(HttpStatus.NO_CONTENT).json();
+    } catch (e) {
+      res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
+    }
   }
 }
