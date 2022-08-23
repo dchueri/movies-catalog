@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+
+  movies-database:
+    container_name: movies-db
+    image: postgres:latest
+    networks:
+      - movies-bridge
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ./.docker/dbdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=movies_catalog
+
+  movies-catalog:
+    networks:
+      - movies-bridge
+    build:
+      context: movies-server
+      dockerfile: Dockerfile
+    hostname: movies-catalog
+    container_name: movies-catalog
+    volumes:
+      - ./movies-server:/app
+    ports:
+      - 3000:3000
+    depends_on:
+      - movies-database
+      - movies-cache
+
+  movies-cache:
+    container_name: movies-redis
+    image: "redis:alpine"
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+      - movies-bridge
+
+networks:
+  movies-bridge:
+    driver: bridge
