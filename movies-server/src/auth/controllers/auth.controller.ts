@@ -1,8 +1,6 @@
 import {
   Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
+  Controller, HttpStatus,
   Post,
   Request,
   Response
@@ -37,7 +35,6 @@ export class AuthController {
   }
 
   @IsPublic()
-  @HttpCode(HttpStatus.CREATED)
   @Post('signup')
   async create(
     @Body() userToCreate: CreateUserDTO,

@@ -6,6 +6,7 @@ import { CreateMovieDTO } from '../dto/create-movie.dto';
 import { UpdateMovieDTO } from '../dto/update-movie.dto';
 import { MovieEntity } from '../entities/movie.entity';
 import InvalidMovieErrorException from '../exceptions/invalid-data-of-movie.exception';
+import MovieAlreadyExistsErrorException from '../exceptions/movie-already-exists';
 import MovieNotFoundException from '../exceptions/movie-not-found.exception';
 
 @Injectable()
@@ -27,13 +28,16 @@ export class MovieService {
   }
 
   async addMovie(createMovieDTO: CreateMovieDTO): Promise<MovieEntity> {
-    try {
+    if (createMovieDTO.name && createMovieDTO.genre) {
       const movie = await this.movieRepository.create(createMovieDTO);
-      await this.redisService.del('movies');
-      return await this.movieRepository.save(movie);
-    } catch (e) {
-      throw new InvalidMovieErrorException();
+      try {
+        await this.redisService.del('movies');
+        return await this.movieRepository.save(movie);
+      } catch (e) {
+        throw new MovieAlreadyExistsErrorException(movie.name);
+      }
     }
+    throw new InvalidMovieErrorException();
   }
 
   async findOneMovie(movieId: number): Promise<MovieEntity> {
@@ -43,7 +47,10 @@ export class MovieService {
       cache.map((movie) => {
         movie.id == movieId ? (movieFound = movie) : null;
       });
-      return movieFound;
+      if (movieFound) {
+        return movieFound;
+      }
+      throw new MovieNotFoundException(movieId);
     }
     const movieFound = await this.movieRepository.findOne({
       where: { id: movieId },
@@ -58,10 +65,11 @@ export class MovieService {
     movieId: number,
     updateMovieDTO: UpdateMovieDTO,
   ): Promise<MovieEntity> {
-    this.movieRepository.createQueryBuilder().update({
-      ...updateMovieDTO,
-    });
-    await this.movieRepository.update(movieId, updateMovieDTO);
+    try {
+      await this.movieRepository.update(movieId, updateMovieDTO);
+    } catch (e) {
+      throw new MovieAlreadyExistsErrorException(updateMovieDTO.name);
+    }
     const updatedMovie = await this.findOneMovie(movieId);
     if (updatedMovie) {
       await this.redisService.del('movies');
@@ -72,6 +80,10 @@ export class MovieService {
 
   async deleteMovie(movieId: number) {
     await this.redisService.del('movies');
-    return await this.movieRepository.delete({ id: movieId });
+    const returnOfDelete = await this.movieRepository.delete({ id: movieId });
+    if (returnOfDelete.affected) {
+      return
+    }
+    throw new MovieNotFoundException(movieId);
   }
 }
