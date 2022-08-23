@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { CreateUserDTO } from 'src/user/dto/create-user.dto';
 import { UserEntity } from 'src/user/entities/user.entity';
-import UserNotFoundException from 'src/user/exceptions/user-not-found.exception';
 import { UserService } from 'src/user/services/user.service';
 import { IsPublic } from '../decorators/IsPublic.decorators';
 import { AuthRequest } from '../models/AuthRequest.model';
@@ -23,23 +22,15 @@ export class AuthController {
     private readonly userService: UserService,
   ) {}
   @IsPublic()
-  @HttpCode(HttpStatus.OK)
-  @Post('sigin')
+  @Post('signin')
   async login(
     @Request() req: AuthRequest,
     @Response() res,
   ): Promise<UserToken> {
     const user = req.body;
     try {
-      const validatedUser = await this.authService.validateUser(
-        user.userName,
-        user.password,
-      );
-      const jwt = this.authService.login(validatedUser);
-      if (!jwt) {
-        throw new UserNotFoundException(validatedUser.userName);
-      }
-      return jwt;
+      const jwt = await this.authService.login(user);
+      return res.status(HttpStatus.OK).json(jwt);
     } catch (e) {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
     }
@@ -53,9 +44,10 @@ export class AuthController {
     @Response() res,
   ): Promise<UserEntity> {
     try {
-      return await this.userService.createUser(userToCreate);
+      const createdUser = await this.userService.createUser(userToCreate);
+      return res.status(HttpStatus.CREATED).json(createdUser);
     } catch (e) {
-      return res.status(422).json({ message: e.message });
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
     }
   }
 }

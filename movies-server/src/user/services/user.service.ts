@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
@@ -16,14 +16,18 @@ export class UserService {
   ) {}
 
   async createUser(createUserDTO: CreateUserDTO): Promise<UserEntity> {
-    try {
+    if (createUserDTO.userName && createUserDTO.password) {
       const user = this.usersRepository.create(createUserDTO);
-      user.password = await this.hashPassword(createUserDTO.password);
-
-      return await this.usersRepository.save(user);
-    } catch {
-      throw new UserAlreadyExistsException(createUserDTO.userName);
+      if (user) {
+        user.password = await this.hashPassword(createUserDTO.password);
+        try {
+          return await this.usersRepository.save(user);
+        } catch {
+          throw new UserAlreadyExistsException(createUserDTO.userName);
+        }
+      }
     }
+    throw new BadRequestException('You must provide userName and password.');
   }
 
   async updateUser(updateUserDTO: UpdateUserDTO): Promise<UserEntity> {

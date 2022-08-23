@@ -18,20 +18,23 @@ export class AuthService implements IAuthService {
     userName: string,
     password: string,
   ): Promise<UserEntity | null> {
-    const user = await this.usersService.findByUserName(userName);
-    if (user) {
-      const isValidPassword = await this.comparePassword(
-        password,
-        user.password,
-      );
-      if (isValidPassword) {
-        return {
-          ...user,
-          password: '***',
-        };
+    if (userName && password) {
+      const user = await this.usersService.findByUserName(userName);
+      if (user) {
+        const isValidPassword = await this.comparePassword(
+          password,
+          user.password,
+        );
+        if (isValidPassword) {
+          return {
+            ...user,
+            password: '***',
+          };
+        }
       }
+      throw new Error('Username or password provided is incorrect.');
     }
-    throw new Error('Username or password provided is incorrect.');
+    throw new Error('You must provide userName and password.');
   }
 
   async hashPassword(password: string): Promise<string> {
@@ -43,7 +46,8 @@ export class AuthService implements IAuthService {
     return await bcrypt.compare(password, hash);
   }
 
-  login(user: UserEntity): UserToken {
+  async login(user: UserEntity): Promise<UserToken> {
+    await this.validateUser(user.userName, user.password);
     const payload: UserPayload = {
       sub: user.id,
       userName: user.userName,
