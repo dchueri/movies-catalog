@@ -79,7 +79,7 @@ export class MovieController {
   async deleteMovie(@Param('id') movieId: number, @Response() res) {
     try {
       await this.movieService.deleteMovie(movieId);
-      res.status(HttpStatus.NO_CONTENT);
+      return res.status(HttpStatus.NO_CONTENT).json();
     } catch (e) {
       res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
     }

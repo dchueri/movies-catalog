@@ -5,4 +5,6 @@ export class UpdateUserDTO {
   id: number;
   @IsString()
   userName: string;
+  @IsString()
+  password?: string;
 }
