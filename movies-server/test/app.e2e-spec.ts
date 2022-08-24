@@ -1,24 +1,40 @@
 import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import * as request from 'supertest';
-import { AppModule } from './../src/app.module';
+import TestUtil from '../src/common/test/TestUtil';
 
-describe('AppController (e2e)', () => {
+import { AppController } from '../src/app.controller';
+import { AppService } from '../src/app.service';
+import { AuthService } from '../src/auth/services/auth.service';
+
+describe('User', () => {
+  const user = TestUtil.giveMeAValidUser();
+  const mockUserRepository = [user, user];
   let app: INestApplication;
+  let authService = { login: () => [{ accessToken: 'token', userName: 'a' }] };
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [],
+      controllers: [AppController],
+      providers: [AppService],
+    })
+      .overrideProvider(AuthService)
+      .useValue(authService)
+      .compile();
 
-    app = moduleFixture.createNestApplication();
+    app = moduleRef.createNestApplication();
     await app.init();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  it(`/ (GET) `, async () => {
+    await request(app.getHttpServer()).get('/').expect(200);
+  });
+
+  it(`/auth/signin (POST) `, async () => {
+    await request(app.getHttpServer())
+      .post('auth/signin')
+      .send({ userName: 'userName', password: 'password' })
+      .expect(200);
   });
 });

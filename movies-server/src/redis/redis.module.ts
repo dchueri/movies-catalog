@@ -18,4 +18,6 @@ import { RedisService } from './services/redis.service';
   providers: [RedisService],
   exports: [CacheModule, RedisService],
 })
-export class RedisModule {}
+export class RedisModule {
+  constructor() {}
+}

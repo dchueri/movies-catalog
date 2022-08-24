@@ -11,13 +11,15 @@ import {
   Response,
   UseGuards
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { RedisService } from 'src/redis/services/redis.service';
+import { ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RedisService } from '../../redis/services/redis.service';
 import { CreateMovieDTO } from '../dto/create-movie.dto';
 import { UpdateMovieDTO } from '../dto/update-movie.dto';
 import { MovieEntity } from '../entities/movie.entity';
 import { MovieService } from '../services/movie.service';
 
+@ApiTags('movie')
 @Controller('movie')
 @UseGuards(JwtAuthGuard)
 export class MovieController {

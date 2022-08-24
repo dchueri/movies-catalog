@@ -82,7 +82,7 @@ export class MovieService {
     await this.redisService.del('movies');
     const returnOfDelete = await this.movieRepository.delete({ id: movieId });
     if (returnOfDelete.affected) {
-      return;
+      return true;
     }
     throw new MovieNotFoundException(movieId);
   }

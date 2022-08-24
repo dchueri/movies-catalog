@@ -28,9 +28,11 @@ import { UserModule } from './user/user.module';
     UserModule,
     AuthModule,
     MovieModule,
-    RedisModule,
+    RedisModule
   ],
   controllers: [AppController],
   providers: [AppService, RedisService],
 })
-export class AppModule {}
+export class AppModule {
+  constructor() {}
+}

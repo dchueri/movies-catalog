@@ -10,6 +10,8 @@ import { MovieService } from './movie.service';
 
 describe('MovieService', () => {
   let service: MovieService;
+  let cacheService: RedisService;
+  let movieService: MovieEntity;
 
   const mockRepository = {
     get: jest.fn(),
@@ -21,6 +23,7 @@ describe('MovieService', () => {
     findOne: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    add: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -29,6 +32,7 @@ describe('MovieService', () => {
       providers: [
         MovieService,
         RedisService,
+        MovieEntity,
         {
           provide: getRepositoryToken(MovieEntity),
           useValue: mockRepository,
@@ -37,41 +41,46 @@ describe('MovieService', () => {
     }).compile();
 
     service = module.get<MovieService>(MovieService);
+    movieService = module.get<MovieEntity>(MovieEntity);
+    cacheService = module.get<RedisService>(RedisService);
   });
 
-  /*   beforeEach(() => {
-    mockRepository.get.mockReset();
-    mockRepository.set.mockReset();
-    mockRepository.del.mockReset();
-    mockRepository.find.mockReset();
-    mockRepository.create.mockReset();
-    mockRepository.save.mockReset();
-    mockRepository.findOne.mockReset();
-    mockRepository.update.mockReset();
-    mockRepository.delete.mockReset();
-  }); */
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-
-  describe('findAllMovies', () => {
-    it('should be list all movies', async () => {
+  describe('When find all movies', () => {
+    it('should be list all movies from DB', async () => {
       const movie = TestUtil.giveMeAValidMovie();
       mockRepository.find.mockReturnValue([movie, movie]);
       const movies = await service.findAllMovies();
       expect(movies).toHaveLength(2);
       expect(mockRepository.find).toHaveBeenCalledTimes(1);
     });
+
+    it('should be list all movies from Cache', async () => {
+      const movie = TestUtil.giveMeAValidMovie();
+      jest
+        .spyOn(cacheService, 'get')
+        .mockReturnValue(new Promise((resolve) => resolve([movie, movie])));
+      const movies = await service.findAllMovies();
+      expect(movies).toHaveLength(2);
+      expect(mockRepository.find).toHaveBeenCalledTimes(1);
+    });
   });
 
-  describe('findUserById', () => {
-    it('should be find a existring movie by id in DB', async () => {
+  describe('When find one movie by Id', () => {
+    it('should be find a existing movie by id in DB', async () => {
       const movie = TestUtil.giveMeAValidMovie();
       mockRepository.findOne.mockReturnValue(movie);
       const movieFound = await service.findOneMovie(1);
       expect(movieFound).toMatchObject(movie);
       expect(mockRepository.findOne).toHaveBeenCalledTimes(1);
+    });
+    it('should be find a existing movie by id in Cache', async () => {
+      const movie = TestUtil.giveMeAValidMovie();
+      jest
+        .spyOn(cacheService, 'get')
+        .mockReturnValue(new Promise((resolve) => resolve([movie, movie])));
+      const foundMovie = await service.findOneMovie(1);
+      expect(foundMovie).toBe(movie);
+      expect(mockRepository.find).toHaveBeenCalledTimes(1);
     });
     it('should return a exception when does not to find a movie', async () => {
       mockRepository.findOne.mockReturnValue(null);
@@ -82,7 +91,7 @@ describe('MovieService', () => {
     });
   });
 
-  describe('createMovie', () => {
+  describe('When create a movie', () => {
     it('should add a movie', async () => {
       const movie = TestUtil.giveMeAValidMovie();
       mockRepository.save.mockReturnValue(movie);
@@ -92,27 +101,61 @@ describe('MovieService', () => {
       expect(mockRepository.create).toBeCalledTimes(1);
       expect(mockRepository.save).toBeCalledTimes(1);
     });
-    it('should return a exception when doesnt add a movie', async () => {
+    it('should return a exception when doesnt add a movie because a invalid input', async () => {
       const movie = TestUtil.giveMeAValidMovie();
       mockRepository.save.mockReturnValue(null);
-      mockRepository.create.mockReturnValue(movie);
-
+      mockRepository.create.mockReturnValue(null);
+      movie.name = '';
       await service.addMovie(movie).catch((e) => {
         expect(e).toBeInstanceOf(InvalidMovieErrorException);
         expect(e).toMatchObject({
           message: 'The movie have invalids informations. Try again.',
         });
       });
-      expect(mockRepository.create).toBeCalledTimes(2);
-      expect(mockRepository.save).toBeCalledTimes(2);
+      expect(mockRepository.create).toBeCalledTimes(1);
+      expect(mockRepository.save).toBeCalledTimes(1);
     });
   });
 
-  describe('updateMovie', () => {
+  describe('When update a movie', () => {
     it('should update a movie', async () => {
       const movie = TestUtil.giveMeAValidMovie();
-      mockRepository.update.mockReturnValue(movie);
+      const updatedMovie = { name: 'Test movie' };
       mockRepository.findOne.mockReturnValue(movie);
+      mockRepository.update.mockReturnValue({
+        ...movie,
+        ...updatedMovie,
+      });
+
+      const resultMovie = await service.updateMovie(1, {
+        ...movie,
+        ...updatedMovie,
+      });
+      expect(resultMovie).toMatchObject(updatedMovie);
+      expect(mockRepository.findOne).toBeCalledTimes(3);
+      expect(mockRepository.update).toBeCalledTimes(1);
+    });
+  });
+
+  describe('When delete a movie', () => {
+    it('should delete a existing movie', async () => {
+      const movie = TestUtil.giveMeAValidMovie();
+      mockRepository.delete.mockReturnValue({ raw: [], affected: 1 });
+      const deletedMovie = await service.deleteMovie(movie.id);
+      expect(deletedMovie).toBe(true);
+      expect(mockRepository.delete).toBeCalledTimes(1);
+    });
+
+    it('should not delete a inexisting movie', async () => {
+      const movie = TestUtil.giveMeAValidMovie();
+      mockRepository.delete.mockReturnValue({ raw: [], affected: 0 });
+      await service.deleteMovie(movie.id).catch((e) => {
+        expect(e).toBeInstanceOf(MovieNotFoundException);
+        expect(e).toMatchObject({
+          message: `Movie with id '${movie.id}' not found`,
+        });
+      });
+      expect(mockRepository.delete).toBeCalledTimes(2);
     });
   });
 });
