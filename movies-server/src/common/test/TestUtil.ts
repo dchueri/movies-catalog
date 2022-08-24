@@ -1,6 +1,6 @@
-import { CreateUserDTO } from 'src/user/dto/create-user.dto';
-import { UserEntity } from 'src/user/entities/user.entity';
 import { MovieEntity } from '../../movie/entities/movie.entity';
+import { CreateUserDTO } from '../../user/dto/create-user.dto';
+import { UserEntity } from '../../user/entities/user.entity';
 
 export default class TestUtil {
   static giveMeAValidMovie(): MovieEntity {
