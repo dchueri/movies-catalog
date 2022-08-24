@@ -10,11 +10,13 @@ import {
   Response,
   UseGuards
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { UpdateUserDTO } from '../dto/update-user.dto';
 import { UserEntity } from '../entities/user.entity';
 import { UserService } from '../services/user.service';
 
+@ApiTags('user')
 @Controller('user')
 @UseGuards(JwtAuthGuard)
 export class UserController {
@@ -32,7 +34,7 @@ export class UserController {
     @Response() res,
   ): Promise<UserEntity> {
     try {
-      const userFound = await this.userService.findOne(userId);
+      const userFound = await this.userService.findOneUserById(userId);
       return res.status(HttpStatus.OK).json(userFound);
     } catch (e) {
       res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });

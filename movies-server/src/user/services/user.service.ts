@@ -6,6 +6,7 @@ import { CreateUserDTO } from '../dto/create-user.dto';
 import { UpdateUserDTO } from '../dto/update-user.dto';
 import { UserEntity } from '../entities/user.entity';
 import UserAlreadyExistsException from '../exceptions/user-already-exists';
+import UserNotFoundException from '../exceptions/user-not-found.exception';
 
 @Injectable()
 export class UserService {
@@ -39,7 +40,6 @@ export class UserService {
     try {
       await this.usersRepository.update(userId, updateUserDTO);
     } catch (e) {
-      console.log(e.message);
       throw new UserAlreadyExistsException(updateUserDTO.userName);
     }
     const updatedUser = await this.usersRepository.findOne({
@@ -54,7 +54,7 @@ export class UserService {
   async deleteUser(userId: number) {
     const returnOfDelete = await this.usersRepository.delete({ id: userId });
     if (returnOfDelete.affected) {
-      return;
+      return true;
     }
     throw new Error(`User with id ${userId} not found`);
   }
@@ -64,7 +64,7 @@ export class UserService {
     return await bcrypt.hash(password, saltOrRounds);
   }
 
-  async findOne(userId: number): Promise<UserEntity> {
+  async findOneUserById(userId: number): Promise<UserEntity> {
     const userFound = await this.usersRepository.findOne({
       where: { id: userId },
       select: ['id', 'userName', 'createdAt', 'updatedAt'],
@@ -76,9 +76,13 @@ export class UserService {
   }
 
   async findByUserName(userName: string): Promise<UserEntity> {
-    return await this.usersRepository.findOne({
+    const userFound = await this.usersRepository.findOne({
       where: { userName: userName },
     });
+    if (userFound) {
+      return userFound;
+    }
+    throw new UserNotFoundException(userName);
   }
 
   async getUsers(): Promise<UserEntity[]> {

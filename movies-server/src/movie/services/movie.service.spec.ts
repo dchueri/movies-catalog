@@ -66,12 +66,21 @@ describe('MovieService', () => {
   });
 
   describe('When find one movie by Id', () => {
-    it('should be find a existring movie by id in DB', async () => {
+    it('should be find a existing movie by id in DB', async () => {
       const movie = TestUtil.giveMeAValidMovie();
       mockRepository.findOne.mockReturnValue(movie);
       const movieFound = await service.findOneMovie(1);
       expect(movieFound).toMatchObject(movie);
       expect(mockRepository.findOne).toHaveBeenCalledTimes(1);
+    });
+    it('should be find a existing movie by id in Cache', async () => {
+      const movie = TestUtil.giveMeAValidMovie();
+      jest
+        .spyOn(cacheService, 'get')
+        .mockReturnValue(new Promise((resolve) => resolve([movie, movie])));
+      const foundMovie = await service.findOneMovie(1);
+      expect(foundMovie).toBe(movie);
+      expect(mockRepository.find).toHaveBeenCalledTimes(1);
     });
     it('should return a exception when does not to find a movie', async () => {
       mockRepository.findOne.mockReturnValue(null);
@@ -137,7 +146,7 @@ describe('MovieService', () => {
       expect(mockRepository.delete).toBeCalledTimes(1);
     });
 
-    it('should not delete a inexisting user', async () => {
+    it('should not delete a inexisting movie', async () => {
       const movie = TestUtil.giveMeAValidMovie();
       mockRepository.delete.mockReturnValue({ raw: [], affected: 0 });
       await service.deleteMovie(movie.id).catch((e) => {
