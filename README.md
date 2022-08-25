@@ -18,10 +18,10 @@ Projeto desenvolvido para o MKS Challenge Back-end. O **Movies Catalog** tem o i
 
 Endpoint para o consumo da API:
 
-    https://dc-movies-catalog.herokuapp.com/api#
+    https://dc-movies-catalog.herokuapp.com/
 
 > Para vizualizar todos os end-points da API acesse a [Documentação
-> Completa](https://dc-movies-catalog.herokuapp.com/)
+> Completa](https://dc-movies-catalog.herokuapp.com/api#)
 
 Para realizar a instalação você precisa primeiramente clonar este repositório digitando o comando abaixo no terminal:
 
