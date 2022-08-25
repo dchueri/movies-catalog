@@ -52,8 +52,8 @@ Ou caso contrário, acesse a pagina *movies-server* e inicie a aplicação:
 * `Docker` - Foi disponibilizado o arquivo docker-compose para execução da aplicação em containers (de forma mais estável);
 * `TypeORM` - Utilizado para o gerenciamento de repositórios e entidades. Fazendo a coneção da aplicação com os bancos de dados;
 * `PostgreSQL` - Banco de dados relacional utilizado para o armazenamento de dados;
-* `Redis` - Banco de dados "NoSQL" o qual armazena seus dados em memória. Com isso, foi utilizado para evitar pesquisas recorrentes no PostgreSQL. Guardando o retorno de todos os filmes por 5 minutos a cada pesquisa do usuário; e 
-* `Swagger` - Utilizado para a confecção da documentação da API.
+* `Redis` - Banco de dados "NoSQL" o qual armazena seus dados em memória. Com isso, foi utilizado para evitar pesquisas recorrentes no PostgreSQL. Guardando o retorno de todos os filmes por 5 minutos a cada pesquisa do usuário;
+* `Swagger` - Utilizado para a confecção da documentação da API;e
 * `Heroku` - Utilizado para realizar o deploy da API.
 
 ## ✒️ Autor
