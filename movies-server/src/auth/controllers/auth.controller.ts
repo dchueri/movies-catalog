@@ -1,16 +1,13 @@
 import {
   Body,
   Controller, HttpStatus,
-  Post,
-  Request,
-  Response
+  Post, Response
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateUserDTO } from '../../user/dto/create-user.dto';
 import { UserEntity } from '../../user/entities/user.entity';
 import { UserService } from '../../user/services/user.service';
 import { IsPublic } from '../decorators/IsPublic.decorators';
-import { AuthRequest } from '../models/AuthRequest.model';
 import { UserToken } from '../models/UserToken.model';
 import { AuthService } from '../services/auth.service';
 
@@ -24,10 +21,10 @@ export class AuthController {
   @IsPublic()
   @Post('signin')
   async login(
-    @Request() req: AuthRequest,
+    @Body() userToLogin: UserEntity,
     @Response() res,
   ): Promise<UserToken> {
-    const user = req.body;
+    const user = userToLogin;
     try {
       const jwt = await this.authService.login(user);
       return res.status(HttpStatus.OK).json(jwt);
