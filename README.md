@@ -54,6 +54,7 @@ Ou caso contrário, acesse a pagina *movies-server* e inicie a aplicação:
 * `PostgreSQL` - Banco de dados relacional utilizado para o armazenamento de dados;
 * `Redis` - Banco de dados "NoSQL" o qual armazena seus dados em memória. Com isso, foi utilizado para evitar pesquisas recorrentes no PostgreSQL. Guardando o retorno de todos os filmes por 5 minutos a cada pesquisa do usuário; e 
 * `Swagger` - Utilizado para a confecção da documentação da API.
+* `Heroku` - Utilizado para realizar o deploy da API.
 
 ## ✒️ Autor
 
