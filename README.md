@@ -1,3 +1,4 @@
+
 #
 # MKS - Back-end Challenge
 ![Badge em Desenvolvimento](http://img.shields.io/static/v1?label=STATUS&message=EM%20PRODUÇÃO&color=blue&style=for-the-badge)  ![Badge Versão](https://img.shields.io/badge/VERSION-1.0.0-blue?style=for-the-badge) 
@@ -14,6 +15,14 @@
 Projeto desenvolvido para o MKS Challenge Back-end. O **Movies Catalog** tem o intuito de realizar a catalogação de filmes, indicando seu nome e gênero.
 
 ## 📄 Como utilizar
+
+Endpoint para o consumo da API:
+
+    https://dc-movies-catalog.herokuapp.com/
+
+> Para vizualizar todos os end-points da API acesse a [Documentação
+> Completa](https://dc-movies-catalog.herokuapp.com/)
+
 Para realizar a instalação você precisa primeiramente clonar este repositório digitando o comando abaixo no terminal:
 
     https://github.com/dchueri/movies-catalog.git
