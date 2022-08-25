@@ -18,7 +18,7 @@ Projeto desenvolvido para o MKS Challenge Back-end. O **Movies Catalog** tem o i
 
 Endpoint para o consumo da API:
 
-    https://dc-movies-catalog.herokuapp.com/
+    https://dc-movies-catalog.herokuapp.com/api#
 
 > Para vizualizar todos os end-points da API acesse a [Documentação
 > Completa](https://dc-movies-catalog.herokuapp.com/)
