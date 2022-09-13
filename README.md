@@ -1,6 +1,6 @@
 
 #
-# MKS - Back-end Challenge
+# Movies Catalog
 ![Badge em Desenvolvimento](http://img.shields.io/static/v1?label=STATUS&message=EM%20PRODUÇÃO&color=blue&style=for-the-badge)  ![Badge Versão](https://img.shields.io/badge/VERSION-1.0.0-blue?style=for-the-badge) 
 
 ## Índice
@@ -12,7 +12,7 @@
 
 ## 🚀 Descrição
 
-Projeto desenvolvido para o MKS Challenge Back-end. O **Movies Catalog** tem o intuito de realizar a catalogação de filmes, indicando seu nome e gênero.
+O **Movies Catalog** tem o intuito de realizar a catalogação de filmes, indicando seu nome e gênero.
 
 ## 📄 Como utilizar
 
